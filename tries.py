@@ -39,14 +39,12 @@ class AbstractTrie(ABC):
     def create_trie(words: str) -> AbstractTrie:
         pass
 
+
 @dataclass
 class VarSizeTrie(AbstractTrie):
 
     children: list[VarSizeTrie]
     char: str
-
-    def is_leaf(self):
-        return not bool(self.children)
     
     def _contains(self, word: str) -> bool:
         for child in self.children:
@@ -87,7 +85,7 @@ class VarSizeTrie(AbstractTrie):
             return VarSizeTrie(char=rest_word[0], children=[lower_node])
         
     @staticmethod
-    def create_trie(words: str) -> VarSizeTrie:
+    def create_trie(words: list[str]) -> VarSizeTrie:
         trie = VarSizeTrie(char="root", children=[])
         for word in words: trie.insert(word)
         return trie
@@ -107,7 +105,80 @@ class VarSizeTrie(AbstractTrie):
 
         for child in self.children:
             child.print(False, depth+1, id(child) == id(self.children[-1]), is_last)
+
+
+@dataclass
+class FixedSizeTrie(AbstractTrie):
+
+    children: list[FixedSizeTrie]
+    char_to_idx: list[int]
+    alphabet: str
+
+    def _contains(self, word: str) -> bool:
+        child: FixedSizeTrie = self.children[self.char_to_idx[ord(word[0])]]
+        if child: return child.contains(word[1:])
+        else: False
     
+    def _delete(self, word: str) -> bool:
+        success = False
+        child_idx = self.char_to_idx[ord(word[0])]
+        child: FixedSizeTrie = self.children[child_idx]
+        if child:
+            success = child.delete(word[1:])
+        if success:
+            if child.is_leaf() or not any(child.children):
+                self.children[child_idx] = None
+        return success
+    
+    def _insert(self, word: str) -> bool:
+        success = True
+        child_idx = self.char_to_idx[ord(word[0])]
+        child: FixedSizeTrie = self.children[child_idx]
+        if child:
+            success = child.insert(word[1:])
+        else:
+            new_children = [None] * len(self.children)
+            if len(word) == 1:
+                new_child = FixedSizeTrie(char_to_idx=None, alphabet=self.alphabet, children=None)
+            else:
+                new_child = FixedSizeTrie(char_to_idx=self.char_to_idx, alphabet=self.alphabet, children=new_children)
+            new_child.insert(word[1:])
+            self.children[child_idx] = new_child
+        return success
+        
+    @staticmethod
+    def create_trie(alphabet: str, words: list[str]) -> FixedSizeTrie:
+        highest_index = max([ord(char) for char in alphabet.strip('\x00')])
+        char_to_idx: list[int] = [None] * (highest_index+1)
+        children: list[FixedSizeTrie] = [None] * len(alphabet)
+        for i, char in enumerate(alphabet):
+            char_to_idx[ord(char)] = i
+        trie = FixedSizeTrie(char_to_idx=char_to_idx, alphabet=alphabet, children=children)
+        for word in words: trie.insert(word)
+        return trie
+    
+    def print(self, name="root", is_root=True, depth=0):
+        prefix = "   "
+        for _ in range(depth-2):
+            prefix += "│  "
+        if depth > 1: prefix += "│  "
+        prefix += "└──"
+
+        if is_root:
+            print(name)
+        else:
+            char = name if name != "\0" else "$"
+            print(prefix + char)
+
+        if self.children:
+            for i, child in enumerate(self.children):
+                if child:
+                    #print(self.idx_to_char[i])
+                    child.print(self.alphabet[i], False, depth+1)
+
+
+
+
 
 @dataclass
 class HashTrie(AbstractTrie):
@@ -150,7 +221,7 @@ class HashTrie(AbstractTrie):
             return HashTrie({rest_word[0]: lower_node})
         
     @staticmethod
-    def create_trie(words: str) -> HashTrie:
+    def create_trie(words: list[str]) -> HashTrie:
         trie = HashTrie({})
         for word in words: trie.insert(word)
         return trie
