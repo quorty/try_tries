@@ -117,7 +117,7 @@ class FixedSizeTrie(AbstractTrie):
     def _contains(self, word: str) -> bool:
         child: FixedSizeTrie = self.children[self.char_to_idx[ord(word[0])]]
         if child: return child.contains(word[1:])
-        else: False
+        else: return False
     
     def _delete(self, word: str) -> bool:
         success = False
