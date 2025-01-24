@@ -9,15 +9,15 @@ import argparse
 
 ALPHABET = '\0' + string.ascii_letters + string.digits
 
-def create_trie(words: list[str], trie_type='1'):
+def create_trie(words: list[str], trie_type='fixed_size'):
     """
     This method creates a trie from a list of words and returns the trie and the time [ms] taken to create the trie.
     """
-    if trie_type == '1': # variable size trie
+    if trie_type == 'variable_size': # variable size trie
         trie_constructor = lambda w : VarSizeTrie.create_trie(w)
-    elif trie_type == '2': # fixed size trie
+    elif trie_type == 'fixed_size': # fixed size trie
         trie_constructor = lambda w : FixedSizeTrie.create_trie(ALPHABET, w)
-    elif trie_type == '3': # hash trie
+    elif trie_type == 'hash': # hash trie
         trie_constructor = lambda w : HashTrie.create_trie(w)
     else:
         raise ValueError("Invalid trie type")
@@ -54,7 +54,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     input_file_path = args.input_file_path
     query_file_path = args.query_file_path
-    variant = args.variante
+    v = args.variante
+    variant = 'variable_size' if v == '1' else 'fixed_size' if v == '2' else 'hash' if v == '3' else v
     assert os.path.exists(input_file_path), "Input file does not exist"
     assert os.path.exists(query_file_path), "Query file does not exist"
     assert Path(input_file_path).suffix == '.txt', "Input file is not a text file"
@@ -78,4 +79,4 @@ if __name__ == "__main__":
         q_end = time.time() # in s
         query_time = (q_end-q_start)*1e3 # in ms
     
-    print(f"name=KevinDanielKuryshev trie_construction_time={construction_time} trie_construction_memory={peak/(1024*1024)} query_time={query_time}")
+    print(f"name=KevinDanielKuryshev trie_variant={variant} trie_construction_time={construction_time} trie_construction_memory={peak/(1024*1024)} query_time={query_time}")
