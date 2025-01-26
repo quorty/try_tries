@@ -287,11 +287,18 @@ class HashTrie(AbstractTrie):
     children: dict[str, HashTrie]
     
     def _contains(self, word: str) -> bool:
+        """
+        `children` being a dictionary allows for quick access to the correct child.
+        """
         if word[0] in self.children:
             return self.children[word[0]].contains(word[1:])
         return False
     
     def _delete(self, word: str) -> bool:
+        """
+        `children` being a dictionary allows for quick access to the correct child.
+        To remove a child, the default `pop` method from dictionaries is used.
+        """
         success = False
         if word[0] in self.children:
             child = self.children[word[0]]
@@ -302,6 +309,10 @@ class HashTrie(AbstractTrie):
         return success
     
     def _insert(self, word: str) -> bool:
+        """
+        `children` being a dictionary allows for quick access to the correct child.
+        Adding new children is done with the default `[]` notation for dictionaries.
+        """
         success = True
         if word[0] in self.children:
             success = self.children[word[0]].insert(word[1:])
