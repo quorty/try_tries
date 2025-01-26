@@ -4,14 +4,23 @@ from dataclasses import dataclass
 
 @dataclass
 class AbstractTrie(ABC):
+    """
+    Abstract class for trie data structures.
+    """
 
-    children: any
+    children: any # all implementations use a list of children
 
     def is_leaf(self):
-        return not bool(self.children)
+        """
+        Check if the node is a leaf, by checking if it has no children.
+        """
+        return not bool(self.children) # leafs are nodes without children
 
     def contains(self, word: str) -> bool:
-        if len(word) == 0: return True
+        """
+        Performs contains query on trie. Calls `_contains`.
+        """
+        if len(word) == 0: return True # Empty word is always contained
         else: return self._contains(word)
         
     @abstractmethod
@@ -19,7 +28,10 @@ class AbstractTrie(ABC):
         pass
 
     def delete(self, word: str) -> bool:
-        if len(word) == 0: return True
+        """
+        Performs delete query on trie. Calls `_delete`.
+        """
+        if len(word) == 0: return True # Empty word means nothing to delete
         else: return self._delete(word)
 
     @abstractmethod
@@ -27,7 +39,10 @@ class AbstractTrie(ABC):
         pass
 
     def insert(self, word: str) -> bool:
-        if len(word) == 0: return False
+        """
+        Performs insert query on trie. Calls `_insert`.
+        """
+        if len(word) == 0: return False # Empty word means nothing to insert
         else: return self._insert(word)
 
     @abstractmethod
@@ -37,22 +52,53 @@ class AbstractTrie(ABC):
     @staticmethod
     @abstractmethod
     def create_trie(words: str) -> AbstractTrie:
+        """
+        Constructor method for trie data structures. Creates a trie from a list of words.
+        """
         pass
+
+    @abstractmethod
+    def print_trie(self):
+        """
+        Prints the trie in a human-readable format.
+        """
+        pass
+
+
+
 
 
 @dataclass
 class VarSizeTrie(AbstractTrie):
+    """
+    Class for variable size trie data structures.
+
+    For each node, its character is stored as a string and the children are stored in a list.
+    """
 
     children: list[VarSizeTrie]
     char: str
     
     def _contains(self, word: str) -> bool:
+        """
+        This method recursively checks if a word is contained in the trie.
+
+        First it is checked if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the character is not found in the children, the method returns False.
+        """
         for child in self.children:
             if word[0] == child.char: return child.contains(word[1:])
-            #print(f"{word[0]} != {child.char}")
         return False
     
     def _delete(self, word: str) -> bool:
+        """
+        This method recursively deletes a word from the trie.
+
+        First it is checked if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the deletion (recursively) was successful, the child node is removed from the children list.
+        """
         success = False
         child_to_delete = None
         for child in self.children:
@@ -65,6 +111,13 @@ class VarSizeTrie(AbstractTrie):
         return success
     
     def _insert(self, word: str) -> bool:
+        """
+        This method recursively inserts a word into the trie.
+
+        First it is checked if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the character is not found in the children, a new trie is created for the rest of the word and added to the children list.
+        """
         found = False
         success = True
         for child in self.children:
@@ -90,7 +143,10 @@ class VarSizeTrie(AbstractTrie):
         for word in words: trie.insert(word)
         return trie
     
-    def print(self, is_root=True, depth=0, is_last=False, was_last=False):
+    def print_trie(self):
+        self.__recursive_print()
+
+    def __recursive_print(self, is_root=True, depth=0, is_last=False, was_last=False):
         prefix = "   "
         for _ in range(depth-2):
             prefix += "│  "
@@ -104,11 +160,19 @@ class VarSizeTrie(AbstractTrie):
             print(prefix + char)
 
         for child in self.children:
-            child.print(False, depth+1, id(child) == id(self.children[-1]), is_last)
+            child.__recursive_print(False, depth+1, id(child) == id(self.children[-1]), is_last)
+
+
+
 
 
 @dataclass
 class FixedSizeTrie(AbstractTrie):
+    """
+    Class for fixed size trie data structures.
+
+    For each node, the children are stored in a fixed size list and the character to index mapping is stored in a list.
+    """
 
     children: list[FixedSizeTrie]
     char_to_idx: list[int]
@@ -157,7 +221,10 @@ class FixedSizeTrie(AbstractTrie):
         for word in words: trie.insert(word)
         return trie
     
-    def print(self, name="root", is_root=True, depth=0):
+    def print_trie(self):
+        self.__recursive_print()
+    
+    def __recursive_print(self, name="root", is_root=True, depth=0):
         prefix = "   "
         for _ in range(depth-2):
             prefix += "│  "
@@ -174,7 +241,7 @@ class FixedSizeTrie(AbstractTrie):
             for i, child in enumerate(self.children):
                 if child:
                     #print(self.idx_to_char[i])
-                    child.print(self.alphabet[i], False, depth+1)
+                    child.__recursive_print(self.alphabet[i], False, depth+1)
 
 
 
@@ -195,11 +262,8 @@ class HashTrie(AbstractTrie):
         if word[0] in self.children:
             child = self.children[word[0]]
             success = child.delete(word[1:])
-        #else: print(f"{word[0]} does not appear in {self.children}")
         if success:
-            #print(f"For {word[0]} deleting?: {child}")
             if child.is_leaf():
-            #    print(f"Deleting...")
                 self.children.pop(word[0])
         return success
     
@@ -226,7 +290,10 @@ class HashTrie(AbstractTrie):
         for word in words: trie.insert(word)
         return trie
     
-    def print(self, char="", is_root=True, depth=0, is_last=False, was_last=False):
+    def print_trie(self):
+        self.__recursive_print()
+    
+    def __recursive_print(self, char="", is_root=True, depth=0, is_last=False, was_last=False):
         prefix = "   "
         for _ in range(depth-2):
             prefix += "│  "
@@ -240,4 +307,4 @@ class HashTrie(AbstractTrie):
             print(prefix + char)
 
         for child in self.children:
-            self.children[child].print(child, False, depth+1, id(child) == id(list(self.children.keys())[-1]), is_last)
+            self.children[child].__recursive_print(child, False, depth+1, id(child) == id(list(self.children.keys())[-1]), is_last)
