@@ -1,6 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Any
+# import numpy as np # to create actual arrays for fixed size tries
+# import numpy.typing as npt
 
 @dataclass
 class AbstractTrie(ABC):
@@ -8,7 +11,7 @@ class AbstractTrie(ABC):
     Abstract class for trie data structures.
     """
 
-    children: any # all implementations use a list of children
+    children: Any # all implementations use a list of children
 
     def is_leaf(self):
         """
@@ -19,6 +22,12 @@ class AbstractTrie(ABC):
     def contains(self, word: str) -> bool:
         """
         Performs contains query on trie. Calls `_contains`.
+
+        Each implementation of `_contains` is based on recursion.
+
+        First it checks if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the character is not found in the children, the method returns False.
         """
         if len(word) == 0: return True # Empty word is always contained
         else: return self._contains(word)
@@ -30,6 +39,12 @@ class AbstractTrie(ABC):
     def delete(self, word: str) -> bool:
         """
         Performs delete query on trie. Calls `_delete`.
+
+        Each implementation of `_delete` is based on recursion.
+
+        First it checks if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the deletion (of the recursive call) was successful and the child is a leaf, the child node is removed.
         """
         if len(word) == 0: return True # Empty word means nothing to delete
         else: return self._delete(word)
@@ -41,6 +56,12 @@ class AbstractTrie(ABC):
     def insert(self, word: str) -> bool:
         """
         Performs insert query on trie. Calls `_insert`.
+
+        Each implementation of `_insert` is based on recursion.
+
+        First it checks if the first character of the word is contained in the children of the current node.
+        If it is, the method is called recursively on the child node with the rest of the word.
+        If the character is not found in the children, a new trie is created for the rest of the word and added to the other children.
         """
         if len(word) == 0: return False # Empty word means nothing to insert
         else: return self._insert(word)
@@ -81,11 +102,7 @@ class VarSizeTrie(AbstractTrie):
     
     def _contains(self, word: str) -> bool:
         """
-        This method recursively checks if a word is contained in the trie.
-
-        First it is checked if the first character of the word is contained in the children of the current node.
-        If it is, the method is called recursively on the child node with the rest of the word.
-        If the character is not found in the children, the method returns False.
+        Since the children are stored in a list, the method iterates over `children` to find the correct one.
         """
         for child in self.children:
             if word[0] == child.char: return child.contains(word[1:])
@@ -93,11 +110,8 @@ class VarSizeTrie(AbstractTrie):
     
     def _delete(self, word: str) -> bool:
         """
-        This method recursively deletes a word from the trie.
-
-        First it is checked if the first character of the word is contained in the children of the current node.
-        If it is, the method is called recursively on the child node with the rest of the word.
-        If the deletion (recursively) was successful, the child node is removed from the children list.
+        One has to iterate over the `children` list to find a child.
+        Deletion afterward is done with the default `remove` method from lists.
         """
         success = False
         child_to_delete = None
@@ -105,6 +119,7 @@ class VarSizeTrie(AbstractTrie):
             if word[0] == child.char:
                 success = child.delete(word[1:])
                 child_to_delete = child
+                break # only one child can have the correct character
         if success:
             if child_to_delete.is_leaf():
                 self.children.remove(child_to_delete)
@@ -112,11 +127,8 @@ class VarSizeTrie(AbstractTrie):
     
     def _insert(self, word: str) -> bool:
         """
-        This method recursively inserts a word into the trie.
-
-        First it is checked if the first character of the word is contained in the children of the current node.
-        If it is, the method is called recursively on the child node with the rest of the word.
-        If the character is not found in the children, a new trie is created for the rest of the word and added to the children list.
+        One has to iterate over the `children` list to find the correct child.
+        Adding new children is done with the `append` method from lists.
         """
         found = False
         success = True
@@ -124,6 +136,7 @@ class VarSizeTrie(AbstractTrie):
             if word[0] == child.char:
                 found = True
                 success = child.insert(word[1:])
+                break # only one child can have the correct character
         if not found:
             new_trie = self.__create_trie_for_rest(word)
             self.children.append(new_trie)
@@ -174,16 +187,26 @@ class FixedSizeTrie(AbstractTrie):
     For each node, the children are stored in a fixed size list and the character to index mapping is stored in a list.
     """
 
+    # children: npt.NDArray[Any]
+    # char_to_idx: npt.NDArray[np.int_]
     children: list[FixedSizeTrie]
     char_to_idx: list[int]
     alphabet: str
 
     def _contains(self, word: str) -> bool:
+        """
+        Instead of iterating over `children`, the method uses the character to index mapping to find the correct child.
+        In theory this should reduce the time complexity to O(1) for each character.
+        """
         child: FixedSizeTrie = self.children[self.char_to_idx[ord(word[0])]]
         if child: return child.contains(word[1:])
         else: return False
     
     def _delete(self, word: str) -> bool:
+        """
+        The character to index mapping is used to find the correct child. In theory, this is in O(1).
+        Deletion is done afterward by setting the corresponding position in the array to `None`.
+        """
         success = False
         child_idx = self.char_to_idx[ord(word[0])]
         child: FixedSizeTrie = self.children[child_idx]
@@ -195,12 +218,17 @@ class FixedSizeTrie(AbstractTrie):
         return success
     
     def _insert(self, word: str) -> bool:
+        """
+        The character to index mapping is used to find the correct child. In theory, this is in O(1).
+        A new `children` array (empty and of fixed size) is created if the child is `None`.
+        """
         success = True
         child_idx = self.char_to_idx[ord(word[0])]
         child: FixedSizeTrie = self.children[child_idx]
         if child:
             success = child.insert(word[1:])
         else:
+            # new_children = np.empty(len(alphabet), dtype=FixedSizeTrie)
             new_children = [None] * len(self.children)
             if len(word) == 1:
                 new_child = FixedSizeTrie(char_to_idx=None, alphabet=self.alphabet, children=None)
@@ -213,6 +241,8 @@ class FixedSizeTrie(AbstractTrie):
     @staticmethod
     def create_trie(alphabet: str, words: list[str]) -> FixedSizeTrie:
         highest_index = max([ord(char) for char in alphabet.strip('\x00')])
+        # char_to_idx = np.zeros(highest_index+1, dtype=int)
+        # children = np.empty(len(alphabet), dtype=FixedSizeTrie)
         char_to_idx: list[int] = [None] * (highest_index+1)
         children: list[FixedSizeTrie] = [None] * len(alphabet)
         for i, char in enumerate(alphabet):
