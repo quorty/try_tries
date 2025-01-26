@@ -87,8 +87,6 @@ class AbstractTrie(ABC):
 
 
 
-
-
 @dataclass
 class VarSizeTrie(AbstractTrie):
     """
@@ -174,8 +172,6 @@ class VarSizeTrie(AbstractTrie):
 
         for child in self.children:
             child.__recursive_print(False, depth+1, id(child) == id(self.children[-1]), is_last)
-
-
 
 
 
@@ -274,15 +270,17 @@ class FixedSizeTrie(AbstractTrie):
         if self.children:
             for i, child in enumerate(self.children):
                 if child:
-                    #print(self.idx_to_char[i])
                     child.__recursive_print(self.alphabet[i], False, depth+1)
-
-
 
 
 
 @dataclass
 class HashTrie(AbstractTrie):
+    """
+    Class for hash trie data structures.
+
+    For each node, the children are stored in a dictionary.
+    """
 
     children: dict[str, HashTrie]
     

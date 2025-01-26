@@ -14,4 +14,4 @@ CLI help:
 
 Note: Current implementation for fixed size trie uses lists, that are initialized with `None`. This is technically speaking not a literal fixed-size array, but an implementation with numpy arrays (that are closer to actual fixed-size arrays) did not show improvement in terms of performance.
 
-The lines of code, that can be used to replace the current for the numpy implementation, are commented out right above the corresponding lines.
+The lines of code, that can be used to replace the current for the numpy implementation, are commented out right above the corresponding lines (in `tries.py`).

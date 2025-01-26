@@ -76,7 +76,7 @@ if __name__ == "__main__":
         q_start = time.time()
         for query in query_file:
             print(apply_query(trie, query))
-            #trie.print_trie()
+            # trie.print_trie() # simple trie visualization
         q_end = time.time() # in s
         query_time = (q_end-q_start)*1e3 # in ms
     
