@@ -11,7 +11,7 @@ class AbstractTrie(ABC):
     Abstract class for trie data structures.
     """
 
-    children: Any # all implementations use a list of children
+    children: Any # all implementations use a form of group of children
 
     def is_leaf(self):
         """
@@ -193,6 +193,10 @@ class FixedSizeTrie(AbstractTrie):
     char_to_idx: list[int]
     alphabet: str
 
+    def is_leaf(self):
+        if self.children is None or not any(self.children): return True
+        return False
+
     def _contains(self, word: str) -> bool:
         """
         Instead of iterating over `children`, the method uses the character to index mapping to find the correct child.
@@ -213,7 +217,7 @@ class FixedSizeTrie(AbstractTrie):
         if child:
             success = child.delete(word[1:])
         if success:
-            if child.is_leaf() or not any(child.children):
+            if child.is_leaf():
                 self.children[child_idx] = None
         return success
     
@@ -228,7 +232,7 @@ class FixedSizeTrie(AbstractTrie):
         if child:
             success = child.insert(word[1:])
         else:
-            # new_children = np.empty(len(alphabet), dtype=FixedSizeTrie)
+            # new_children = np.empty(len(self.alphabet), dtype=FixedSizeTrie)
             new_children = [None] * len(self.children)
             if len(word) == 1:
                 new_child = FixedSizeTrie(char_to_idx=None, alphabet=self.alphabet, children=None)
