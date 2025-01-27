@@ -1,4 +1,4 @@
-from tries import AbstractTrie, VarSizeTrie, FixedSizeTrie, HashTrie
+from iterative_tries import AbstractTrie, VarSizeTrie, FixedSizeTrie, HashTrie
 import string
 
 import os
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     # read input and query file paths from command line arguments
     parser = argparse.ArgumentParser(
                     prog='test_tries.py',
-                    description='Test trie creation, query, and query time. Outputs trie construction time, trie construction memory, and query time.',
+                    description='Test trie creation, query, and query time. Outputs trie type, trie construction time [ms], trie construction memory [MiB], and query time [ms].',
                     epilog='')
     parser.add_argument('input_file_path', type=str, help='Path to input file')
     parser.add_argument('query_file_path', type=str, help='Path to query file')
@@ -74,14 +74,22 @@ if __name__ == "__main__":
 
     with open(query_file_path, 'r') as text_file:
         query_file = text_file.read().split('\n')
+        results = []
 
         # measure timing of queries
         q_start = time.time()
         for query in query_file if query_file[-1] != '' else query_file[:-1]:
             result = apply_query(trie, query)
-            print(result)
+            results.append(result)
             # trie.print_trie() # simple trie visualization
         q_end = time.time() # in s
         query_time = (q_end-q_start)*1e3 # in ms
     
+    # write results to output file
+    name = "result_" + Path(input_file_path).stem + ".txt"
+    full_path = Path(input_file_path).parent / name
+    with open(full_path, 'w') as output_file:
+        for result in results:
+            output_file.write(str(result).lower() + '\n')
+
     print(f"name=KevinDanielKuryshev trie_variant={variant} trie_construction_time={construction_time} trie_construction_memory={peak/(1024*1024)} query_time={query_time}")
