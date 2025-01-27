@@ -1,8 +1,8 @@
 # try_tries
 I learn how to implement tries. Implemented trie structures:
-- Variable size trie: `-variante 1`
-- Fixed size trie: `-variante 2`
-- Hash trie: `-variante 3`
+- Variable size trie: `-variante=1`
+- Fixed size trie: `-variante=2`
+- Hash trie: `-variante=3`
 
 CLI use:
 
