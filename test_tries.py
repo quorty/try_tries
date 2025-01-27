@@ -47,7 +47,10 @@ if __name__ == "__main__":
     # read input and query file paths from command line arguments
     parser = argparse.ArgumentParser(
                     prog='test_tries.py',
-                    description='Test trie creation, query, and query time. Outputs trie type, trie construction time [ms], trie construction memory [MiB], and query time [ms].',
+                    description="""
+                    Test trie creation, query, and query time. Outputs trie type, trie construction time [ms], trie construction memory [MiB], and query time [ms].
+                    Additionally, it saves the boolean outputs of the queries to a file (in the input file directory under the name result_<input file name>.txt).
+                    """,
                     epilog='')
     parser.add_argument('input_file_path', type=str, help='Path to input file')
     parser.add_argument('query_file_path', type=str, help='Path to query file')
@@ -81,7 +84,6 @@ if __name__ == "__main__":
         for query in query_file if query_file[-1] != '' else query_file[:-1]:
             result = apply_query(trie, query)
             results.append(result)
-            # trie.print_trie() # simple trie visualization
         q_end = time.time() # in s
         query_time = (q_end-q_start)*1e3 # in ms
     

@@ -12,6 +12,10 @@ CLI help:
 
 > `python test_tries.py -h`
 
-Note: Current implementation for fixed size trie uses lists, that are initialized with `None`. This is technically speaking not a literal fixed-size array, but an implementation with numpy arrays (that are closer to actual fixed-size arrays) did not show improvement in terms of performance.
+Additionally, the boolean outputs for the query file are stored in the directory of
+the input file with the name `result_<input file name>.txt`.
 
-The lines of code, that can be used to replace the current for the numpy implementation, are commented out right above the corresponding lines (in `tries.py`).
+Former recursive implementation (`recursive_tries.py`) was way too slow,
+so it was replaced with an iterative implementation instead (`iterative_tries.py`).
+The recursive version supported a simple print function for the tries, but due
+to lacking time, this was not implemented for the iterative version.
