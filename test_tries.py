@@ -7,6 +7,9 @@ import time
 import tracemalloc
 import argparse
 
+import sys
+sys.setrecursionlimit(10**6)
+
 ALPHABET = '\0' + string.ascii_letters + string.digits
 
 def create_trie(words: list[str], trie_type='fixed_size'):
@@ -74,8 +77,9 @@ if __name__ == "__main__":
 
         # measure timing of queries
         q_start = time.time()
-        for query in query_file:
-            print(apply_query(trie, query))
+        for query in query_file if query_file[-1] != '' else query_file[:-1]:
+            result = apply_query(trie, query)
+            print(result)
             # trie.print_trie() # simple trie visualization
         q_end = time.time() # in s
         query_time = (q_end-q_start)*1e3 # in ms
