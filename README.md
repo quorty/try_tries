@@ -6,7 +6,7 @@ I learn how to implement tries. Implemented trie structures:
 
 CLI use:
 
->`python test_tries.py -variante <1-3> input_file_path query_file_path`
+>`python test_tries.py -variante=<1-3> input_file_path query_file_path`
 
 CLI help:
 
